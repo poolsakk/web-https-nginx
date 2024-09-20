@@ -32,7 +32,7 @@ services:
       # - ./nginx/nginx.conf:/etc/nginx/conf/nginx.conf:ro
       # - ./nginx/conf.d:/etc/nginx/conf/conf.d:ro
     # environment:
-    #   - VIRTUAL_HOST=scaleton.local  # โดเมนหลักของคุณ
+    #   - VIRTUAL_HOST=devops.local  # โดเมนหลักของคุณ
       
   client-app:
     container_name: client-app
@@ -42,8 +42,8 @@ services:
     restart: unless-stopped
     environment:
       - NODE_ENV=development
-      - VIRTUAL_HOST=scaleton.local
-      - LETSENCRYPT_HOST=scaleton.local
+      - VIRTUAL_HOST=devops.local
+      - LETSENCRYPT_HOST=devops.local
     volumes:
       - ./client-app:/usr/src/app # แชร์ไฟล์จาก host ไป container
       - /usr/src/app/node_modules # ป้องกันไม่ให้ node_modules ที่อยู่ใน container ถูกแชร์หรือถูกเขียนทับโดยโฟลเดอร์ node_modules จาก host
