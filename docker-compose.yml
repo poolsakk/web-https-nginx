@@ -1,0 +1,55 @@
+services:
+  lets-nginx-proxy:
+    container_name: lets-nginx-proxy
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    restart: always
+    volumes_from:
+      - nginx-proxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./certs:/etc/nginx/certs:rw
+    environment:
+      - NGINX_PROXY_CONTAINER=nginx-proxy
+    depends_on:
+      - nginx-proxy
+
+  nginx-proxy:
+    image: jwilder/nginx-proxy:alpine
+    container_name: nginx-proxy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./nginx/vhost.d:/etc/nginx/vhost.d
+      - /etc/nginx/vhost.d # ป้องกันไม่ให้ vhost.d ที่อยู่ใน container ถูกแชร์หรือถูกเขียนทับโดยโฟลเดอร์ vhost.d จาก host
+      - ./nginx/html:/usr/share/nginx/html
+      - /usr/share/nginx/html # ป้องกันไม่ให้ html ที่อยู่ใน container ถูกแชร์หรือถูกเขียนทับโดยโฟลเดอร์ html จาก host
+      - ./certs:/etc/nginx/certs
+      - ./nginx/dhparam:/etc/nginx/dhparam
+      - /etc/nginx/dhparam # ป้องกันไม่ให้ dhparam ที่อยู่ใน container ถูกแชร์หรือถูกเขียนทับโดยโฟลเดอร์ dhparam จาก host
+      # - ./nginx/nginx.conf:/etc/nginx/conf/nginx.conf:ro
+      # - ./nginx/conf.d:/etc/nginx/conf/conf.d:ro
+    # environment:
+    #   - VIRTUAL_HOST=scaleton.local  # โดเมนหลักของคุณ
+      
+  client-app:
+    container_name: client-app
+    build:
+      context: ./client-app
+      dockerfile: Dockerfile.local
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=development
+      - VIRTUAL_HOST=scaleton.local
+      - LETSENCRYPT_HOST=scaleton.local
+    volumes:
+      - ./client-app:/usr/src/app # แชร์ไฟล์จาก host ไป container
+      - /usr/src/app/node_modules # ป้องกันไม่ให้ node_modules ที่อยู่ใน container ถูกแชร์หรือถูกเขียนทับโดยโฟลเดอร์ node_modules จาก host
+
+volumes:
+  vhost:
+  html:
+  certs:
+  dhparam:
